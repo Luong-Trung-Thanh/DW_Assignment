@@ -180,3 +180,4 @@ def load():
             connection_article.close()
 
 load();
+
