@@ -116,10 +116,16 @@ def load():
             cursor_article_app.close()
             connection_article.close()
 
-
+#how many articles paper has?
+def checkSize(websiteURL):
+    paper = newspaper.build(websiteURL)
+    print(paper.size())
 
 if __name__ == '__main__':
-    configID = 3
+    # checkSize("http://pandodaily.com")
+
+
+    configID = 1
     # get config
     dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
     # fetch data from website, convert to csv file

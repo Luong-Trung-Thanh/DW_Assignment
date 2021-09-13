@@ -2,6 +2,7 @@
 import newspaper
 
 from bs4 import BeautifulSoup
+from newspaper import Article
 
 import main
 from bean.DataFile import DataFile
@@ -15,13 +16,16 @@ dbControlConnection =  Con.getConnection('db_control')
 dbWarehouseConnection = Con.getConnection('db_warehouse')
 
 
-# cnn_paper = newspaper.build("http://www.ted.com",language='en')
-# print(cnn_paper.size()) #how many articles cnn has?
+
 
 # use beautiful soup library to extract data from html page
-# article = Article("https://vnexpress.net/ronaldo-tu-choi-de-nghi-roi-san-cua-solskjaer-4355118.html")
+# article = Article("http://www.ted.com/talks/katie_mack_the_mind_bending_reality_of_the_universe")
 # article.download()
 # article.parse()
+# print(article.publish_date)
+# print(type(article.publish_date))
+# print(article.publish_date is None)
+
 # soup = BeautifulSoup(article.html, 'html.parser')
 # print(soup.prettify())
 # print(soup.find_all("div", class_="normal")[0].text)
@@ -57,7 +61,7 @@ def writeData2CSVFile(articles,dataFileConfig):
             print("Downloading "+str(article.url))
             article.download()
             article.parse()
-            print("Download " + str(article.url)+" successful")
+            print("Successful download " + str(article.url))
         except newspaper.article.ArticleException:
             # inform writing row to csv file successfully to "data_logs" table
             dataLog = DataLog(description="Failed to download Article form url: " + str(article.url), name="Download Article")
@@ -69,11 +73,19 @@ def writeData2CSVFile(articles,dataFileConfig):
         title = article.title
         publish_date = getPublishDate(article)
         authors = getAuthors(article)
+        if(publish_date is None or authors is None):
+            # inform writing row to csv file successfully to "data_logs" table
+            print("Failed write to csv " + str(article.url))
+            dataLog = DataLog(description="Failed to write Article form url: " + str(article.url),
+                              name="Download Article")
+            DataLogDAO.insertDataLog(dbControlConnection, dataLog)
+            continue
 
         # write to file as row
         writer.writerow([url, title, publish_date, authors])
 
         # inform writing row to csv file successfully to "data_logs" table
+        print("Successful write csv " + str(article.url))
         dataLog = DataLog(description="Successfully write data from " + str(article.url), name="Write data to csv")
         DataLogDAO.insertDataLog(dbControlConnection, dataLog)
 

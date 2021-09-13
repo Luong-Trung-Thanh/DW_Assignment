@@ -19,7 +19,8 @@ def insertArticle(connection,article):
   mycursor = connection.cursor()
 
   # check if has missing data?
-  if(publishDate.isspace() or authors.isspace() or publishDate.find("[]")>=0 or authors.find("[]")>=0):
+  if(publishDate.isspace() or authors.isspace() or
+          publishDate.find("[]")>=0 or authors.find("[]")>=0):
       print("Inserting Article failed! ", article.url)
       # write into log
       dataLog = DataLog(description="Inserting Article to Article table in db_warehouse's FAILED! Article URL: "
