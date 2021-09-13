@@ -18,15 +18,15 @@ def insertArticle(connection,article):
   authors = article.authors
   mycursor = connection.cursor()
 
-  # check if has missing data?
-  if(publishDate.isspace() or authors.isspace() or
-          publishDate.find("[]")>=0 or authors.find("[]")>=0):
-      print("Inserting Article failed! ", article.url)
-      # write into log
-      dataLog = DataLog(description="Inserting Article to Article table in db_warehouse's FAILED! Article URL: "
-                                    + str(article.url), name="Insert Article")
-      DataLogDAO.insertDataLog(dbControlConnection, dataLog)
-      return False
+  # # check if has missing data?
+  # if(publishDate.isspace() or authors.isspace() or
+  #         publishDate.find("[]")>=0 or authors.find("[]")>=0):
+  #     print("Inserting Article failed! ", article.url)
+  #     # write into log
+  #     dataLog = DataLog(description="FAILED insert Article to Article table in db_warehouse! Article URL: "
+  #                                   + str(article.url), name="Insert Article")
+  #     DataLogDAO.insertDataLog(dbControlConnection, dataLog)
+  #     return False
 
   # insert data
   sql = "INSERT INTO article (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
@@ -37,13 +37,13 @@ def insertArticle(connection,article):
   except Exception:
     print("Inserting Article failed! ",article.url)
     # write into log
-    dataLog = DataLog(description="Inserting Article to Article table in db_warehouse's FAILED! Article URL: "
+    dataLog = DataLog(description="FAILED insert Article to Article table in db_warehouse! Article URL: "
                                   + str(article.url), name="Insert Article")
     DataLogDAO.insertDataLog(dbControlConnection, dataLog)
     return False
 
   # write into log
-  dataLog = DataLog(description="Inserting Article to Article table in db_warehouse's SUCCESSFUL! Article URL: "
+  dataLog = DataLog(description="SUCCESSFUL insert Article to Article table in db_warehouse! Article URL: "
                                 + str(article.url), name="Insert Article")
   DataLogDAO.insertDataLog(dbControlConnection, dataLog)
   print("Insert Article successful! ", article.url)

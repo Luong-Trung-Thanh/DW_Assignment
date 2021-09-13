@@ -12,15 +12,15 @@ def insertDataFile(connection,dataFile):
     connection.commit()
   except Exception:
     print("Inserting Data File failed! ",description)
-    return False
+    return -1
 
-  return True
+  return mycursor.lastrowid
 
 def updateStatusDataFile(connection,dataFile):
   mycursor = connection.cursor()
-  sql = "UPDATE data_files SET statues = %s WHERE data_config_id = %s"
+  sql = "UPDATE data_files SET statues = %s WHERE id = %s"
 
-  val = (dataFile.status, dataFile.data_config_id)
+  val = (dataFile.status, dataFile.id)
   try:
     mycursor.execute(sql, val)
     connection.commit()

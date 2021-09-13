@@ -36,10 +36,15 @@ def fetchArticles(dataFileConfig):
     paper = newspaper.build(dataFileConfig.url, memoize_articles=False)
     # insert row to "data_file" table in "db_control" database
     dataFile = DataFile(status="running", description=paper.description, rowCount=paper.size(),data_config_id=dataFileConfig.id)
-    DataFileDAO.insertDataFile(dbControlConnection,dataFile)
+    dataFileID = DataFileDAO.insertDataFile(dbControlConnection,dataFile)
+
+    # set dataFile ID
+    dataFile.id = dataFileID
+
     # write data to csv file
     writeData2CSVFile(paper.articles,dataFileConfig)
 
+    # update status datafile by id
     dataFile.status = "finished"
     DataFileDAO.updateStatusDataFile(dbControlConnection,dataFile)
 
@@ -64,19 +69,21 @@ def writeData2CSVFile(articles,dataFileConfig):
             print("Successful download " + str(article.url))
         except newspaper.article.ArticleException:
             # inform writing row to csv file successfully to "data_logs" table
-            dataLog = DataLog(description="Failed to download Article form url: " + str(article.url), name="Download Article")
+            dataLog = DataLog(description="FAILED to download Article form url: " + str(article.url), name="Download Article")
             DataLogDAO.insertDataLog(dbControlConnection, dataLog)
             continue
-
 
         url = article.url
         title = article.title
         publish_date = getPublishDate(article)
         authors = getAuthors(article)
-        if(publish_date is None or authors is None):
+
+        # check if has missing data?
+        if(publish_date is None or authors is None or publish_date.isspace() or authors.isspace() or
+                publish_date.find("[]") >= 0 or authors.find("[]") >= 0):
             # inform writing row to csv file successfully to "data_logs" table
             print("Failed write to csv " + str(article.url))
-            dataLog = DataLog(description="Failed to write Article form url: " + str(article.url),
+            dataLog = DataLog(description="FAILED to write Article form url: " + str(article.url),
                               name="Download Article")
             DataLogDAO.insertDataLog(dbControlConnection, dataLog)
             continue
@@ -86,11 +93,12 @@ def writeData2CSVFile(articles,dataFileConfig):
 
         # inform writing row to csv file successfully to "data_logs" table
         print("Successful write csv " + str(article.url))
-        dataLog = DataLog(description="Successfully write data from " + str(article.url), name="Write data to csv")
+        dataLog = DataLog(description="SUCCESSFULY write data from " + str(article.url), name="Write data to csv")
         DataLogDAO.insertDataLog(dbControlConnection, dataLog)
 
     # after finishing writing, close the file
     csvFile.close()
+
 
 def getPublishDate(article):
     soup = BeautifulSoup(article.html, 'html.parser')
@@ -100,6 +108,7 @@ def getPublishDate(article):
         return article.publish_date
         print("Exception: ", "Can't get publish date")
     return article.publish_date
+
 
 def getAuthors(article):
     soup = BeautifulSoup(article.html, 'html.parser')

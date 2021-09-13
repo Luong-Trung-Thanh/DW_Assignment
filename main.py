@@ -125,7 +125,7 @@ if __name__ == '__main__':
     # checkSize("http://pandodaily.com")
 
 
-    configID = 1
+    configID = 4
     # get config
     dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
     # fetch data from website, convert to csv file
@@ -136,9 +136,6 @@ if __name__ == '__main__':
     transfrom();
     # load data
     load();
-
-
-
 
 
 
