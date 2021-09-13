@@ -1,5 +1,6 @@
 class DataFile:
-  def __init__(self, id, status,note,description,createdAt,updatedAt,rowCount,data_config_id):
+  def __init__(self, id=None, status=None,note=None,description=None,
+               createdAt=None,updatedAt=None,rowCount=None,data_config_id=None):
     self.id = id
     self.status = status
     self.note = note
@@ -8,8 +9,11 @@ class DataFile:
     self.updatedAt = updatedAt
     self.rowCount = rowCount
     self.data_config_id = data_config_id
-  def __init__(self,status,description,rowCount,data_config_id):
-    self.status = status
-    self.description = description
-    self.rowCount = rowCount
-    self.data_config_id = data_config_id
+  # def __init__(self,status,description,rowCount,data_config_id):
+  #   self.status = status
+  #   self.description = description
+  #   self.rowCount = rowCount
+  #   self.data_config_id = data_config_id
+  # def __init__(self,status, data_config_id):
+  #   self.status = status
+  #   self.data_config_id = data_config_id

@@ -13,5 +13,19 @@ def insertDataFile(connection,dataFile):
   except Exception:
     print("Inserting Data File failed! ",description)
     return False
-  print(mycursor.rowcount, "was inserted.")
+
+  return True
+
+def updateStatusDataFile(connection,dataFile):
+  mycursor = connection.cursor()
+  sql = "UPDATE data_files SET statues = %s WHERE data_config_id = %s"
+
+  val = (dataFile.status, dataFile.data_config_id)
+  try:
+    mycursor.execute(sql, val)
+    connection.commit()
+  except Exception:
+    print("Update Data File Status failed where data_config_id = ",str(dataFile.data_config_id))
+    return False
+
   return True

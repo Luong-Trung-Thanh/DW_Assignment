@@ -1,5 +1,6 @@
 class DataFileConfig:
-  def __init__(self, id, url,name,description,pathFileDes,columns,separators,formatFile,createdAt,updatedAt):
+  def __init__(self, id=None, url=None,name=None,description=None,pathFileDes=None,columns=None,
+               separators=None,formatFile=None,createdAt=None,updatedAt=None):
     self.id = id
     self.url = url
     self.name = name
