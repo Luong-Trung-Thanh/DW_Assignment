@@ -4,6 +4,15 @@ from newspaper import news_pool
 import mysql.connector
 from mysql.connector import Error
 from dateutil.parser import parse
+import db.Connection as Con
+from dao import DataFileConfigDAO, ArticleDAO
+from src import ScrapeData
+import pathlib
+
+rootPath = pathlib.Path(__file__).parent
+dbControlConnection = Con.getConnection('db_control')
+dbWarehouseConnection = Con.getConnection('db_warehouse')
+
 
 def downloafInforData():
     cnn_paper = newspaper.build("https://vnexpress.net",language='en',memoize_articles=False)
@@ -18,7 +27,118 @@ def downloafInforData():
         print(article.publish_date)
         print(article.authors)
 
-    popular_urls = ['http://www.huffingtonpost.com', 'http://cnn.com', 'http://www.time.com', 'http://www.ted.com',
+def connectDatabase(database):
+    connection = mysql.connector.connect(
+        host="localhost",
+        database=database,
+        user="root",
+        password="MaiThanh@%)$99"
+    )
+    # db_Info = connection.get_server_info()
+    # print("Connected to MySQL Server version ", db_Info)
+    # cursor = connection.cursor()
+    # cursor.execute("select database();")
+    # record = cursor.fetchone()
+    # print("You're connected to database: ", record)
+    return connection;
+def spellDate(strDate):
+    date = strDate.split(', ')[1];
+    # print (date)
+    # date = '12/9/2021'
+    required_date = parse(date).strftime('%Y-%m-%d')
+    # print(required_date);
+    return required_date;
+
+# spellDate('');
+
+def transfrom():
+    try:
+        connection = connectDatabase('db_warehouse');
+        # print(connection);
+        #  select data
+        mySql_Select_Query = """SELECT url, title, publish_date, authors
+                                FROM article"""
+        cursor = connection.cursor();
+        result = cursor.execute(mySql_Select_Query);
+        records = cursor.fetchall()
+        # print("Total number of rows in table: ", cursor.rowcount)
+        # print("\nPrinting each row")
+        # transform & insert data
+        sql = "INSERT INTO article_transform (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
+        # cursor.execute(sql, ("123123123", "123123", "2021-12-09", "A"));
+
+        for row in records:
+            date = spellDate(row[2]);
+            cursor.execute(sql, (row[0], row[1], date, row[3]));
+        connection.commit()
+
+    except Error as e:
+        print("Error while connecting to MySQL", e)
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection is closed")
+
+
+def load():
+    try:
+        connection_wh = connectDatabase('db_warehouse');
+        connection_article = connectDatabase('db_article');
+
+        # print(connection);
+        #  select data
+        mySql_Select_Query = """SELECT url, title, publish_date, authors
+                                FROM article_transform"""
+        cursor_wh = connection_wh.cursor();
+        result = cursor_wh.execute(mySql_Select_Query);
+        records = cursor_wh.fetchall()
+     
+        sql = "INSERT INTO article (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
+        # cursor.execute(sql, ("123123123", "123123", "2021-12-09", "A"));
+        cursor_article_app = connection_article.cursor();
+
+        for row in records:
+            cursor_article_app.execute(sql, (row[0], row[1], row[2], row[3]));
+        connection_article.commit()
+        connection_wh.commit()
+
+    except Error as e:
+        print("Error while connecting to MySQL", e)
+    finally:
+        if connection_wh.is_connected():
+            cursor_wh.close()
+            connection_wh.close()
+            print("MySQL connection is closed")
+        
+        if connection_article.is_connected():
+            cursor_article_app.close()
+            connection_article.close()
+
+#how many articles paper has?
+def checkSize(websiteURL):
+    paper = newspaper.build(websiteURL)
+    print(paper.size())
+
+if __name__ == '__main__':
+    # checkSize("http://pandodaily.com")
+
+
+    configID = 4
+    # get config
+    dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
+    # fetch data from website, convert to csv file
+    ScrapeData.fetchArticles(dataFileConfig)
+    # load data from csv to table "article" in "db_warehouse" dababase
+    ArticleDAO.loadDataFromCSVFile2DB(dataFileConfig,dbWarehouseConnection)
+    # transform data
+    transfrom();
+    # load data
+    load();
+
+
+
+popular_urls = ['http://www.huffingtonpost.com', 'http://cnn.com', 'http://www.time.com', 'http://www.ted.com',
                 'http://pandodaily.com', 'http://www.cnbc.com', 'http://www.mlb.com', 'http://www.pcmag.com',
                 'http://www.foxnews.com', 'http://theatlantic.com', 'http://www.bbc.co.uk', 'http://www.vice.com',
                 'http://www.elle.com', 'http://www.vh1.com', 'http://espnf1.com', 'http://espn.com',
@@ -89,94 +209,3 @@ def downloafInforData():
                 'http://arstechnica.com', 'http://foreignpolicy.com', 'http://www.redstate.com', 'http://www.marketwatch.com',
                 'http://www.eurogamer.net', 'http://cbn.com', 'http://www.parade.com', 'http://www.bbcamerica.com',
                 'http://washingtonindependent.com', 'http://drudgereport.com', 'http://beta.na.leagueoflegends.com']
-
-def connectDatabase(database):
-    connection = mysql.connector.connect(
-        host="localhost",
-        database=database,
-        user="root",
-        password=""
-    )
-    # db_Info = connection.get_server_info()
-    # print("Connected to MySQL Server version ", db_Info)
-    # cursor = connection.cursor()
-    # cursor.execute("select database();")
-    # record = cursor.fetchone()
-    # print("You're connected to database: ", record)
-    return connection;
-def spellDate(strDate):
-    date = strDate.split(', ')[1];
-    # print (date)
-    # date = '12/9/2021'
-    required_date = parse(date).strftime('%Y-%m-%d')
-    # print(required_date);
-    return required_date;
-
-# spellDate('');
-
-def transfrom():
-    try:
-        connection = connectDatabase('db_warehouse');
-        # print(connection);
-        #  select data
-        mySql_Select_Query = """SELECT url, title, publish_date, authors
-                                FROM article"""
-        cursor = connection.cursor();
-        result = cursor.execute(mySql_Select_Query);
-        records = cursor.fetchall()
-        # print("Total number of rows in table: ", cursor.rowcount)
-        # print("\nPrinting each row")
-        # transform & insert data
-        sql = "INSERT INTO article_transform (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
-        # cursor.execute(sql, ("123123123", "123123", "2021-12-09", "A"));
-
-        for row in records:
-            date = spellDate(row[2]);
-            cursor.execute(sql, (row[0], row[1], date, row[3]));
-        connection.commit()
-
-    except Error as e:
-        print("Error while connecting to MySQL", e)
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
-            print("MySQL connection is closed")
-
-# transfrom();
-def load():
-    try:
-        connection_wh = connectDatabase('db_warehouse');
-        connection_article = connectDatabase('db_article');
-
-        # print(connection);
-        #  select data
-        mySql_Select_Query = """SELECT url, title, publish_date, authors
-                                FROM article_transform"""
-        cursor_wh = connection_wh.cursor();
-        result = cursor_wh.execute(mySql_Select_Query);
-        records = cursor_wh.fetchall()
-     
-        sql = "INSERT INTO article (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
-        # cursor.execute(sql, ("123123123", "123123", "2021-12-09", "A"));
-        cursor_article_app = connection_article.cursor();
-
-        for row in records:
-            cursor_article_app.execute(sql, (row[0], row[1], row[2], row[3]));
-        connection_article.commit()
-        connection_wh.commit()
-
-    except Error as e:
-        print("Error while connecting to MySQL", e)
-    finally:
-        if connection_wh.is_connected():
-            cursor_wh.close()
-            connection_wh.close()
-            print("MySQL connection is closed")
-        
-        if connection_article.is_connected():
-            cursor_article_app.close()
-            connection_article.close()
-
-load();
-
