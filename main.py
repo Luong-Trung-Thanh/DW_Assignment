@@ -105,7 +105,6 @@ def connectDatabase(database):
     # print("You're connected to database: ", record)
     return connection;
 def spellDate(strDate):
-    strDate = 'Chủ nhật, 12/9/2021, 19:15 (GMT+7)';
     date = strDate.split(', ')[1];
     # print (date)
     # date = '12/9/2021'
