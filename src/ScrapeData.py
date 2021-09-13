@@ -79,8 +79,8 @@ def writeData2CSVFile(articles,dataFileConfig):
         authors = getAuthors(article)
 
         # check if has missing data?
-        if(publish_date is None or authors is None or publish_date.isspace() or authors.isspace() or
-                publish_date.find("[]") >= 0 or authors.find("[]") >= 0):
+        if(publish_date is None or authors is None or str(publish_date).isspace() or str(authors).isspace() or
+                str(publish_date).find("[]") >= 0 or str(authors).find("[]") >= 0):
             # inform writing row to csv file successfully to "data_logs" table
             print("Failed write to csv " + str(article.url))
             dataLog = DataLog(description="FAILED to write Article form url: " + str(article.url),

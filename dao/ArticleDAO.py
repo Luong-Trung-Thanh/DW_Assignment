@@ -1,5 +1,4 @@
 import csv
-
 import main
 from bean.Article import Article
 from bean.DataLog import DataLog
@@ -10,23 +9,33 @@ dbWarehouseConnection = Con.getConnection('db_warehouse')
 import pathlib
 rootPath = pathlib.Path(__file__).parent
 
+def isArticleExist(connection,article):
+    url = article.url
+    mycursor = connection.cursor()
+    sql = "SELECT * from article WHERE url = %s"
+    val = (url,)
+    mycursor.execute(sql, val)
+    myresult = mycursor.fetchall()
+    if(len(myresult)>0):
+        return True
+    return False
+
 # insert Article to "Article" table in "db_warehouse" database. If article has missing data, Don't insert it.
 def insertArticle(connection,article):
+    # if article existed, don't insert
+  if(isArticleExist(connection,article)):
+      print("Inserting Article failed! Article existed ", article.url)
+      # write into log
+      dataLog = DataLog(description="FAILED insert Article to Article table in db_warehouse! Article EXISTED. Article URL: "
+                                    + str(article.url), name="Insert Article")
+      DataLogDAO.insertDataLog(dbControlConnection, dataLog)
+      return False
+
   url = article.url
   title = article.title
   publishDate = article.publishDate
   authors = article.authors
   mycursor = connection.cursor()
-
-  # # check if has missing data?
-  # if(publishDate.isspace() or authors.isspace() or
-  #         publishDate.find("[]")>=0 or authors.find("[]")>=0):
-  #     print("Inserting Article failed! ", article.url)
-  #     # write into log
-  #     dataLog = DataLog(description="FAILED insert Article to Article table in db_warehouse! Article URL: "
-  #                                   + str(article.url), name="Insert Article")
-  #     DataLogDAO.insertDataLog(dbControlConnection, dataLog)
-  #     return False
 
   # insert data
   sql = "INSERT INTO article (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
@@ -47,7 +56,6 @@ def insertArticle(connection,article):
                                 + str(article.url), name="Insert Article")
   DataLogDAO.insertDataLog(dbControlConnection, dataLog)
   print("Insert Article successful! ", article.url)
-
   return True
 
 
@@ -66,3 +74,4 @@ def loadDataFromCSVFile2DB(dataFileConfig,connection):
         line_count += 1
     csv_file.close()
     print('Loading data from CSV file to database has completed')
+
