@@ -1,4 +1,6 @@
+import time
 import newspaper
+import schedule
 from newspaper import Article
 from newspaper import news_pool
 import mysql.connector
@@ -117,24 +119,30 @@ def load():
 
 #how many articles paper has?
 def checkSize(websiteURL):
-    paper = newspaper.build(websiteURL)
+    paper = newspaper.build(websiteURL,memoize_articles=False)
     print(paper.size())
 
-if __name__ == '__main__':
-    # checkSize("http://pandodaily.com")
 
-
+def main():
+    # checkSize("http://www.ted.com")
     configID = 4
     # get config
     dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
     # fetch data from website, convert to csv file
     ScrapeData.fetchArticles(dataFileConfig)
     # load data from csv to table "article" in "db_warehouse" dababase
-    ArticleDAO.loadDataFromCSVFile2DB(dataFileConfig,dbWarehouseConnection)
+    ArticleDAO.loadDataFromCSVFile2DB(dataFileConfig, dbWarehouseConnection)
     # transform data
     transfrom();
     # load data
     load();
+
+if __name__ == '__main__':
+    schedule.every().monday.at("18:00").do(main)
+    # schedule.every(1).minutes.do(main)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 
 
