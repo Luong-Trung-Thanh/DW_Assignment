@@ -7,7 +7,7 @@ import mysql.connector
 from mysql.connector import Error
 from dateutil.parser import parse
 import db.Connection as Con
-from dao import DataFileConfigDAO, ArticleDAO
+from dao import DataFileConfigDAO, ArticleDAO, DataFileDAO
 from src import ScrapeData
 import pathlib
 
@@ -53,7 +53,10 @@ def spellDate(strDate):
 
 # spellDate('');
 
-def transfrom():
+def transfrom(dataFile):
+    # update status datafile by id
+    dataFile.status = "transforming"
+    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
     try:
         connection = connectDatabase('db_warehouse');
         # print(connection);
@@ -81,9 +84,15 @@ def transfrom():
             cursor.close()
             connection.close()
             print("MySQL connection is closed")
+    # update status datafile by id
+    dataFile.status = "transformed"
+    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
 
 
-def load():
+def load(dataFile):
+    # update status datafile by id
+    dataFile.status = "loading"
+    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
     try:
         connection_wh = connectDatabase('db_warehouse');
         connection_article = connectDatabase('db_article');
@@ -116,6 +125,9 @@ def load():
         if connection_article.is_connected():
             cursor_article_app.close()
             connection_article.close()
+    # update status datafile by id
+    dataFile.status = "loaded"
+    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
 
 #how many articles paper has?
 def checkSize(websiteURL):
@@ -129,17 +141,17 @@ def main():
     # get config
     dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
     # fetch data from website, convert to csv file
-    ScrapeData.fetchArticles(dataFileConfig)
+    dataFile = ScrapeData.fetchArticles(dataFileConfig)
     # load data from csv to table "article" in "db_warehouse" dababase
     ArticleDAO.loadDataFromCSVFile2DB(dataFileConfig, dbWarehouseConnection)
     # transform data
-    transfrom();
+    transfrom(dataFile);
     # load data
-    load();
+    load(dataFile);
 
 if __name__ == '__main__':
-    schedule.every().monday.at("18:00").do(main)
-    # schedule.every(1).minutes.do(main)
+    # schedule.every().monday.at("18:00").do(main)
+    schedule.every(1).minutes.do(main)
     while True:
         schedule.run_pending()
         time.sleep(1)

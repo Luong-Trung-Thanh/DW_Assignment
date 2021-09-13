@@ -35,7 +35,7 @@ def fetchArticles(dataFileConfig):
     # get paper
     paper = newspaper.build(dataFileConfig.url, memoize_articles=False)
     # insert row to "data_file" table in "db_control" database
-    dataFile = DataFile(status="running", description=paper.description, rowCount=paper.size(),data_config_id=dataFileConfig.id)
+    dataFile = DataFile(status="extracting", description=paper.description, rowCount=paper.size(),data_config_id=dataFileConfig.id)
     dataFileID = DataFileDAO.insertDataFile(dbControlConnection,dataFile)
 
     # set dataFile ID
@@ -45,8 +45,9 @@ def fetchArticles(dataFileConfig):
     writeData2CSVFile(paper.articles,dataFileConfig)
 
     # update status datafile by id
-    dataFile.status = "finished"
+    dataFile.status = "extracted"
     DataFileDAO.updateStatusDataFile(dbControlConnection,dataFile)
+    return dataFile
 
 
 
