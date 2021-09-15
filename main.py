@@ -16,18 +16,6 @@ dbControlConnection = Con.getConnection('db_control')
 dbWarehouseConnection = Con.getConnection('db_warehouse')
 
 
-def downloafInforData():
-    cnn_paper = newspaper.build("https://vnexpress.net",language='en',memoize_articles=False)
-    for category in cnn_paper.category_urls():
-        print(category)
-
-    for article in cnn_paper.articles:
-        article.download()
-        article.parse()
-        print(article.url)
-        print(article.title)
-        print(article.publish_date)
-        print(article.authors)
 
 def connectDatabase(database):
     connection = mysql.connector.connect(
@@ -43,6 +31,9 @@ def connectDatabase(database):
     # record = cursor.fetchone()
     # print("You're connected to database: ", record)
     return connection;
+    # @description Get Process Name
+    # @return
+    # @author Duyen Tran (duyen.tran@ecepvn.org)
 def spellDate(strDate):
     date = strDate.split(', ')[1];
     # print (date)
@@ -51,8 +42,9 @@ def spellDate(strDate):
     # print(required_date);
     return required_date;
 
-# spellDate('');
-
+# @description Get Process Name
+    # @return
+    # @author Duyen Tran (duyen.tran@ecepvn.org)
 def transfrom(dataFile):
     # update status datafile by id
     dataFile.status = "transforming"
@@ -88,6 +80,9 @@ def transfrom(dataFile):
     dataFile.status = "transformed"
     DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
 
+# @description Get Process Name
+    # @return
+    # @author Duyen Tran (duyen.tran@ecepvn.org)
 
 def load(dataFile):
     # update status datafile by id
