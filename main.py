@@ -1,6 +1,6 @@
 import time
 import newspaper
-import schedule
+import db.Connection as Con
 from newspaper import Article
 from newspaper import news_pool
 import mysql.connector
@@ -14,26 +14,13 @@ import pathlib
 rootPath = pathlib.Path(__file__).parent
 dbControlConnection = Con.getConnection('db_control')
 dbStagingConnection = Con.getConnection('db_staging')
+dbWarehouseConnection = Con.getConnection('db_control')
 
 
 
-def connectDatabase(database):
-    connection = mysql.connector.connect(
-        host="localhost",
-        database=database,
-        user="root",
-        password="MaiThanh@%)$99"
-    )
-    # db_Info = connection.get_server_info()
-    # print("Connected to MySQL Server version ", db_Info)
-    # cursor = connection.cursor()
-    # cursor.execute("select database();")
-    # record = cursor.fetchone()
-    # print("You're connected to database: ", record)
-    return connection;
-    # @description Get Process Name
-    # @return
-    # @author Duyen Tran (duyen.tran@ecepvn.org)
+# @description split date form text date weekday,dd//mm//yy, hh:mm:ss
+# @return
+# @author Duyen Tran (duyen.tran@ecepvn.org)
 def spellDate(strDate):
     date = strDate.split(', ')[1];
     # print (date)
@@ -42,20 +29,19 @@ def spellDate(strDate):
     # print(required_date);
     return required_date;
 
-# @description Get Process Name
+# @description transform data form data extract to data staging
     # @return
     # @author Duyen Tran (duyen.tran@ecepvn.org)
+
 def transfrom(dataFile):
     # update status datafile by id
     dataFile.status = "transforming"
     DataFileDAO.updateStatusDataFile(dataFile)
     try:
-        connection = connectDatabase('db_staging');
-        # print(connection);
         #  select data
         mySql_Select_Query = """SELECT url, title, publish_date, authors
                                 FROM article"""
-        cursor = connection.cursor();
+        cursor = dbStagingConnection.cursor();
         result = cursor.execute(mySql_Select_Query);
         records = cursor.fetchall()
         # print("Total number of rows in table: ", cursor.rowcount)
@@ -67,20 +53,20 @@ def transfrom(dataFile):
         for row in records:
             date = spellDate(row[2]);
             cursor.execute(sql, (row[0], row[1], date, row[3]));
-        connection.commit()
+        dbStagingConnection.commit()
 
     except Error as e:
         print("Error while connecting to MySQL", e)
     finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
+        if dbStagingConnection.is_connected():
+            # cursor.close()
+            # dbStagingConnection.close()
             print("MySQL connection is closed")
     # update status datafile by id
     dataFile.status = "transformed"
     DataFileDAO.updateStatusDataFile(dataFile)
 
-# @description Get Process Name
+# @description load data form data staging to data warehouse
     # @return
     # @author Duyen Tran (duyen.tran@ecepvn.org)
 
@@ -89,35 +75,30 @@ def load(dataFile):
     dataFile.status = "loading"
     DataFileDAO.updateStatusDataFile(dataFile)
     try:
-        connection_wh = connectDatabase('db_staging');
-        connection_article = connectDatabase('db_warehouse');
-
-        # print(connection);
         #  select data
         mySql_Select_Query = """SELECT url, title, publish_date, authors
                                 FROM article_transform"""
-        cursor_wh = connection_wh.cursor();
+        cursor_wh = dbStagingConnection.cursor();
         result = cursor_wh.execute(mySql_Select_Query);
         records = cursor_wh.fetchall()
      
         sql = "INSERT INTO article (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
-        # cursor.execute(sql, ("123123123", "123123", "2021-12-09", "A"));
-        cursor_article_app = connection_article.cursor();
+        cursor_article_app = dbWarehouseConnection.cursor();
 
         for row in records:
             cursor_article_app.execute(sql, (row[0], row[1], row[2], row[3]));
-        connection_article.commit()
-        connection_wh.commit()
+        dbWarehouseConnection.commit()
+        dbStagingConnection.commit()
 
     except Error as e:
         print("Error while connecting to MySQL", e)
     finally:
-        if connection_wh.is_connected():
+        if dbStagingConnection.is_connected():
             # cursor_wh.close()
             # connection_wh.close()
             print("MySQL connection is closed")
         
-        if connection_article.is_connected():
+        if dbWarehouseConnection.is_connected():
             # cursor_article_app.close()
             # connection_article.close()
             print("MySQL connection is closed")
