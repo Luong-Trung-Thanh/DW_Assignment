@@ -1,3 +1,5 @@
+# @description DataFileConfig model
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 class DataFileConfig:
   def __init__(self, id=None, url=None,name=None,description=None,destination=None,columns=None,
                separators=None,formatFile=None,createdAt=None,updatedAt=None):

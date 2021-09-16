@@ -1,8 +1,8 @@
 import mysql.connector
-import time
-from datetime import datetime
-import schedule
 
+# @description get connection to database
+# @return connection
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getConnection(dbName):
   return mysql.connector.connect(
     host="localhost",
@@ -11,10 +11,3 @@ def getConnection(dbName):
     database=dbName
 )
 
-# if __name__ == '__main__':
-#   schedule.every(10).seconds.do(run)
-#   while True:
-#     # Checks whether a scheduled task
-#     # is pending to run or not
-#     schedule.run_pending()
-#     time.sleep(1)

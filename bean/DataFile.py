@@ -1,3 +1,5 @@
+# @description DataFile model
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 class DataFile:
   def __init__(self, id=None, name = None,status=None,note=None,description=None,
                createdAt=None,updatedAt=None,rowCount=None,data_config_id=None):

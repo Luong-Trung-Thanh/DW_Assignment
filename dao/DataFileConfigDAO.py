@@ -4,9 +4,9 @@ import db.Connection as Con
 dbControlConnection =  Con.getConnection('db_control')
 dbStagingConnection = Con.getConnection('db_staging')
 
-
-# get data file config row by ID
-# return DataFileConfig object
+# @description get data file config row by ID
+# @return DataFileConfig object
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getConfigRow(configID):
     mycursor = dbControlConnection.cursor()
     sql = "SELECT * FROM data_file_config WHERE id =%s"
@@ -23,7 +23,3 @@ def getConfigRow(configID):
         print("Exception: " + str(configID)+" id doesn't match any data_file_config's table row.")
         return None
     return dataFileConfig
-
-
-if __name__ == '__main__':
-    print(getConfigRow(1).url)

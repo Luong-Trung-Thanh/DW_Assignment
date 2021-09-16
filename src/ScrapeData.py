@@ -1,33 +1,20 @@
-
 import newspaper
 from datetime import datetime
 from bs4 import BeautifulSoup
-from newspaper import Article
-
 import main
 from bean.DataFile import DataFile
 import csv
 import db.Connection as Con
 from bean.DataLog import DataLog
-from bean.GracefulKiller import GracefulKiller
 from dao import DataFileDAO, DataLogDAO, DataFileConfigDAO
 import pathlib
 rootPath = pathlib.Path(__file__).parent
-dbControlConnection =  Con.getConnection('db_control')
-
-# use beautiful soup library to extract data from html page
-# article = Article("http://www.ted.com/talks/katie_mack_the_mind_bending_reality_of_the_universe")
-# article.download()
-# article.parse()
-# print(article.publish_date)
-# print(type(article.publish_date))
-# print(article.publish_date is None)
-
-# soup = BeautifulSoup(article.html, 'html.parser')
-# print(soup.prettify())
-# print(soup.find_all("div", class_="normal")[0].text)
+dbControlConnection = Con.getConnection('db_control')
 
 
+# @description fetch articles from newspaper website
+# @return DataFile object
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def fetchArticles(configID):
     dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
     # get paper
@@ -53,7 +40,9 @@ def fetchArticles(configID):
     DataFileDAO.updateStatusDataFile(dataFile)
     return dataFile
 
-
+# @description write article data got from newspaper website to csv file
+# @return void
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def writeData2CSVFile(articles,dataFileConfig,dataFile):
     row_count = 0
     delimiter = dataFileConfig.separators
@@ -113,11 +102,13 @@ def writeData2CSVFile(articles,dataFileConfig,dataFile):
     csvFile.close()
     # update row_count in dataFile
     dataFile.rowCount = row_count
-    DataFileDAO.updateRowCountDataFile( dataFile)
+    DataFileDAO.updateRowCountDataFile(dataFile)
 
 
 
-
+# @description extract publish date from article
+# @return publish date (string)
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getPublishDate(article):
     soup = BeautifulSoup(article.html, 'html.parser')
     try:
@@ -127,7 +118,9 @@ def getPublishDate(article):
         print("Exception: ", "Can't get publish date")
     return article.publish_date
 
-
+# @description extract authors from article
+# @return authors (string)
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getAuthors(article):
     soup = BeautifulSoup(article.html, 'html.parser')
     try:
@@ -143,14 +136,22 @@ def getAuthors(article):
         return article.authors
         print("Exception: ", "Can't get authors")
 
+# @description get current datetime, "%Y-%m-%d_%H-%M-%S" format. Ex: 2021-09-16_10-27-26
+# @return string
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getCurrentDateTime():
     # datetime object containing current date and time
     now = datetime.now()
     dt_string = now.strftime("%Y-%m-%d_%H-%M-%S")
     return dt_string
 
-# get  columns list from columns string, split by ",", ex: url, title, publish_date, authors
+
+
+
+# @description # get the list of columns from columns string, split by ",", ex: url, title, publish_date, authors
 # => ['url', 'title', 'publish_date', 'authors']
+# @return list of columns
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getColumns(dataFileConfig):
     # get columns string from data_file_config
     columnsString = dataFileConfig.columns
@@ -158,7 +159,4 @@ def getColumns(dataFileConfig):
     columnsList = columnsString.rsplit(",")
     return columnsList
 
-
-# if __name__ == '__main__':
-#     getColumns()
 

@@ -125,14 +125,17 @@ def load(dataFile):
     dataFile.status = "loaded"
     DataFileDAO.updateStatusDataFile(dataFile)
 
-#how many articles paper has?
+
+# @description how many articles paper has?
+# @return integer
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def checkSize(websiteURL):
     paper = newspaper.build(websiteURL,memoize_articles=False)
-    print(paper.size())
+    return paper.size()
 
 
 def main():
-    # checkSize("http://www.ted.com")
+    # print(checkSize("http://www.ted.com"))
     configID = 4
 
     # fetch data from website, convert to csv file

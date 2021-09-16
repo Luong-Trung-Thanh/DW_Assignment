@@ -3,6 +3,10 @@ import db.Connection as Con
 
 dbControlConnection = Con.getConnection('db_control')
 
+
+# @description insert data file to "data_files" table in "db_config" database
+# @return data file ID
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def insertDataFile(dataFile):
     name = dataFile.name
     status = dataFile.status
@@ -22,7 +26,9 @@ def insertDataFile(dataFile):
 
     return mycursor.lastrowid
 
-
+# @description update data file status
+# @return boolean
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def updateStatusDataFile(dataFile):
     mycursor = dbControlConnection.cursor()
     current_Date = datetime.now()
@@ -39,7 +45,9 @@ def updateStatusDataFile(dataFile):
         return False
     return True
 
-
+# @description update data file row_count
+# @return boolean
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def updateRowCountDataFile(dataFile):
     mycursor = dbControlConnection.cursor()
     current_Date = datetime.now()
@@ -56,8 +64,10 @@ def updateRowCountDataFile(dataFile):
     return True
 
 
-# get data file by status. status can be: ER, TR, LR ,...
-# return list of data file with status
+
+# @description get data file by status. status can be: ER, TR, LR ,...
+# @return list of data file
+# @author Thanh Luong (thanh.luong@ecepvn.org)
 def getDataFileByStatus(status):
     mycursor = dbControlConnection.cursor()
     sql = "SELECT * FROM data_files where statues = %s"
@@ -66,8 +76,3 @@ def getDataFileByStatus(status):
     myresult = mycursor.fetchall()
     return myresult
 
-# import db.Connection as Con
-# dbControlConnection =  Con.getConnection('db_control')
-# dbStagingConnection = Con.getConnection('db_staging')
-# if __name__ == '__main__':
-#     getDataFileByStatus("ER",dbControlConnection)
