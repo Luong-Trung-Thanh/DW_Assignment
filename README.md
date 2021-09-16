@@ -12,8 +12,7 @@ Open source data (article): Vnexpress, CNN,...
     Database: MySQL
 ### Steps To Follow
 
-    For example, run this command inside your terminal:
-
+- For example, run this command inside your terminal:
     ```bash
     git clone https://github.com/Luong-Trung-Thanh/DW_Assignment.git
     ```
@@ -24,8 +23,7 @@ Open source data (article): Vnexpress, CNN,...
 - Set up database in folder [database.](https://github.com/Luong-Trung-Thanh/DW_Assignment/database) in project
 ## Sample code
 
-Here is a sample code that you can run on your machine after having installed project:
- 
+- Here is a sample code that you can run on your machine after having installed project:
     ```bash
         def main():
             # print(checkSize("http://www.ted.com"))
