@@ -9,6 +9,9 @@ from dateutil.parser import parse
 import db.Connection as Con
 from dao import DataFileConfigDAO, ArticleDAO, DataFileDAO
 from src import ScrapeData
+from src import TransFormData
+from src import LoadData
+
 import pathlib
 
 rootPath = pathlib.Path(__file__).parent
@@ -17,94 +20,6 @@ dbStagingConnection = Con.getConnection('db_staging')
 dbWarehouseConnection = Con.getConnection('db_control')
 
 
-
-# @description split date form text date weekday,dd//mm//yy, hh:mm:ss
-# @return
-# @author Duyen Tran (duyen.tran@ecepvn.org)
-def spellDate(strDate):
-    date = strDate.split(', ')[1];
-    # print (date)
-    # date = '12/9/2021'
-    required_date = parse(date).strftime('%Y-%m-%d')
-    # print(required_date);
-    return required_date;
-
-# @description transform data form data extract to data staging
-    # @return
-    # @author Duyen Tran (duyen.tran@ecepvn.org)
-
-def transfrom(dataFile):
-    # update status datafile by id
-    dataFile.status = "transforming"
-    DataFileDAO.updateStatusDataFile(dataFile)
-    try:
-        #  select data
-        mySql_Select_Query = """SELECT url, title, publish_date, authors
-                                FROM article"""
-        cursor = dbStagingConnection.cursor();
-        result = cursor.execute(mySql_Select_Query);
-        records = cursor.fetchall()
-        # print("Total number of rows in table: ", cursor.rowcount)
-        # print("\nPrinting each row")
-        # transform & insert data
-        sql = "INSERT INTO article_transform (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
-        # cursor.execute(sql, ("123123123", "123123", "2021-12-09", "A"));
-
-        for row in records:
-            date = spellDate(row[2]);
-            cursor.execute(sql, (row[0], row[1], date, row[3]));
-        dbStagingConnection.commit()
-
-    except Error as e:
-        print("Error while connecting to MySQL", e)
-    finally:
-        if dbStagingConnection.is_connected():
-            # cursor.close()
-            # dbStagingConnection.close()
-            print("MySQL connection is closed")
-    # update status datafile by id
-    dataFile.status = "transformed"
-    DataFileDAO.updateStatusDataFile(dataFile)
-
-# @description load data form data staging to data warehouse
-    # @return
-    # @author Duyen Tran (duyen.tran@ecepvn.org)
-
-def load(dataFile):
-    # update status datafile by id
-    dataFile.status = "loading"
-    DataFileDAO.updateStatusDataFile(dataFile)
-    try:
-        #  select data
-        mySql_Select_Query = """SELECT url, title, publish_date, authors
-                                FROM article_transform"""
-        cursor_wh = dbStagingConnection.cursor();
-        result = cursor_wh.execute(mySql_Select_Query);
-        records = cursor_wh.fetchall()
-     
-        sql = "INSERT INTO article (url, title, publish_date, authors) VALUES (%s, %s, %s, %s)"
-        cursor_article_app = dbWarehouseConnection.cursor();
-
-        for row in records:
-            cursor_article_app.execute(sql, (row[0], row[1], row[2], row[3]));
-        dbWarehouseConnection.commit()
-        dbStagingConnection.commit()
-
-    except Error as e:
-        print("Error while connecting to MySQL", e)
-    finally:
-        if dbStagingConnection.is_connected():
-            # cursor_wh.close()
-            # connection_wh.close()
-            print("MySQL connection is closed")
-        
-        if dbWarehouseConnection.is_connected():
-            # cursor_article_app.close()
-            # connection_article.close()
-            print("MySQL connection is closed")
-    # update status datafile by id
-    dataFile.status = "loaded"
-    DataFileDAO.updateStatusDataFile(dataFile)
 
 
 # @description how many articles paper has?
@@ -126,10 +41,10 @@ def main():
     # ArticleDAO.loadDataFromCSVFile2DB()
 
     # transform data
-    transfrom(dataFile);
+    TransFormData.transfrom(dataFile);
 
     # load data
-    load(dataFile);
+    LoadData.load(dataFile);
 
 if __name__ == '__main__':
     # checkSize("http://cnn.com")
