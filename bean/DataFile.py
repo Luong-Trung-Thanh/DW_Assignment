@@ -1,19 +1,13 @@
 class DataFile:
-  def __init__(self, id=None, status=None,note=None,description=None,
+  def __init__(self, id=None, name = None,status=None,note=None,description=None,
                createdAt=None,updatedAt=None,rowCount=None,data_config_id=None):
     self.id = id
     self.status = status
+    self.name = name
     self.note = note
     self.description = description
     self.createdAt = createdAt
     self.updatedAt = updatedAt
     self.rowCount = rowCount
     self.data_config_id = data_config_id
-  # def __init__(self,status,description,rowCount,data_config_id):
-  #   self.status = status
-  #   self.description = description
-  #   self.rowCount = rowCount
-  #   self.data_config_id = data_config_id
-  # def __init__(self,status, data_config_id):
-  #   self.status = status
-  #   self.data_config_id = data_config_id
+

@@ -13,7 +13,7 @@ import pathlib
 
 rootPath = pathlib.Path(__file__).parent
 dbControlConnection = Con.getConnection('db_control')
-dbWarehouseConnection = Con.getConnection('db_warehouse')
+dbStagingConnection = Con.getConnection('db_staging')
 
 
 
@@ -48,9 +48,9 @@ def spellDate(strDate):
 def transfrom(dataFile):
     # update status datafile by id
     dataFile.status = "transforming"
-    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
+    DataFileDAO.updateStatusDataFile(dataFile)
     try:
-        connection = connectDatabase('db_warehouse');
+        connection = connectDatabase('db_staging');
         # print(connection);
         #  select data
         mySql_Select_Query = """SELECT url, title, publish_date, authors
@@ -78,7 +78,7 @@ def transfrom(dataFile):
             print("MySQL connection is closed")
     # update status datafile by id
     dataFile.status = "transformed"
-    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
+    DataFileDAO.updateStatusDataFile(dataFile)
 
 # @description Get Process Name
     # @return
@@ -87,10 +87,10 @@ def transfrom(dataFile):
 def load(dataFile):
     # update status datafile by id
     dataFile.status = "loading"
-    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
+    DataFileDAO.updateStatusDataFile(dataFile)
     try:
-        connection_wh = connectDatabase('db_warehouse');
-        connection_article = connectDatabase('db_article');
+        connection_wh = connectDatabase('db_staging');
+        connection_article = connectDatabase('db_warehouse');
 
         # print(connection);
         #  select data
@@ -113,16 +113,17 @@ def load(dataFile):
         print("Error while connecting to MySQL", e)
     finally:
         if connection_wh.is_connected():
-            cursor_wh.close()
-            connection_wh.close()
+            # cursor_wh.close()
+            # connection_wh.close()
             print("MySQL connection is closed")
         
         if connection_article.is_connected():
-            cursor_article_app.close()
-            connection_article.close()
+            # cursor_article_app.close()
+            # connection_article.close()
+            print("MySQL connection is closed")
     # update status datafile by id
     dataFile.status = "loaded"
-    DataFileDAO.updateStatusDataFile(dbControlConnection, dataFile)
+    DataFileDAO.updateStatusDataFile(dataFile)
 
 #how many articles paper has?
 def checkSize(websiteURL):
@@ -133,24 +134,31 @@ def checkSize(websiteURL):
 def main():
     # checkSize("http://www.ted.com")
     configID = 4
-    # get config
-    dataFileConfig = DataFileConfigDAO.getConfigRow(configID)
+
     # fetch data from website, convert to csv file
-    dataFile = ScrapeData.fetchArticles(dataFileConfig)
+    dataFile = ScrapeData.fetchArticles(configID)
+
     # load data from csv to table "article" in "db_warehouse" dababase
-    ArticleDAO.loadDataFromCSVFile2DB(dataFileConfig, dbWarehouseConnection)
+    # ArticleDAO.loadDataFromCSVFile2DB()
+
     # transform data
     transfrom(dataFile);
+
     # load data
     load(dataFile);
 
 if __name__ == '__main__':
-    # schedule.every().monday.at("18:00").do(main)
-    schedule.every(1).minutes.do(main)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    # checkSize("http://cnn.com")
 
+    # schedule
+    # # schedule.every().monday.at("18:00").do(main)
+    # schedule.every(1).minutes.do(main)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
+
+    # run immedietly
+    main()
 
 
 popular_urls = ['http://www.huffingtonpost.com', 'http://cnn.com', 'http://www.time.com', 'http://www.ted.com',
