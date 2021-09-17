@@ -7,7 +7,7 @@ import pathlib
 
 rootPath = pathlib.Path(__file__).parent
 dbStagingConnection = Con.getConnection('db_staging')
-dbWarehouseConnection = Con.getConnection('db_control')
+dbWarehouseConnection = Con.getConnection('db_warehouse')
 
 # @description load data form data staging to data warehouse
     # @return

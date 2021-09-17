@@ -31,14 +31,13 @@ def checkSize(websiteURL):
 
 
 def main():
-    # print(checkSize("http://www.ted.com"))
     configID = 4
 
     # fetch data from website, convert to csv file
     dataFile = ScrapeData.fetchArticles(configID)
 
     # load data from csv to table "article" in "db_warehouse" dababase
-    # ArticleDAO.loadDataFromCSVFile2DB()
+    ArticleDAO.loadDataFromCSVFile2DB()
 
     # transform data
     TransFormData.transfrom(dataFile);
